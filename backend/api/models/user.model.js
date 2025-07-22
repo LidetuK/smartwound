@@ -41,6 +41,10 @@ const User = sequelize.define('User', {
     type: DataTypes.ARRAY(DataTypes.TEXT),
     allowNull: true,
   },
+  profile_pic: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
   privacy_consent: {
     type: DataTypes.BOOLEAN,
     allowNull: false,

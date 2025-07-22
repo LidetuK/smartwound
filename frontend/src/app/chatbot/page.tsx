@@ -43,7 +43,7 @@ export default function ChatbotPage() {
 
   const handleSend = async () => {
     if (!input.trim()) return;
-    const newMessages = [...messages, { role: "user", content: input }];
+    const newMessages = [...messages, { role: "user" as const, content: input }];
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
@@ -52,9 +52,9 @@ export default function ChatbotPage() {
         message: input,
         history: newMessages.filter(m => m.role === "user" || m.role === "assistant")
       });
-      setMessages([...newMessages, { role: "assistant", content: response.data.reply }]);
+      setMessages([...newMessages, { role: "assistant" as const, content: response.data.reply }]);
     } catch (error) {
-      setMessages([...newMessages, { role: "assistant", content: "Sorry, I couldn't process your request. Please try again." }]);
+      setMessages([...newMessages, { role: "assistant" as const, content: "Sorry, I couldn't process your request. Please try again." }]);
     } finally {
       setIsLoading(false);
     }
@@ -72,6 +72,10 @@ export default function ChatbotPage() {
       <nav className="mb-4">
         <Link href="/dashboard" className="text-indigo-600 hover:underline">&larr; Back to Dashboard</Link>
       </nav>
+      {/* Animated AI Character */}
+      <div className="flex justify-center mb-4">
+        <AnimatedRobot />
+      </div>
       <div className="flex-1 overflow-y-auto rounded-lg bg-white p-6 shadow max-w-2xl mx-auto w-full">
         <div className="space-y-4">
           {messages.map((msg, idx) => (
@@ -109,5 +113,32 @@ export default function ChatbotPage() {
         </Button>
       </form>
     </div>
+  );
+}
+
+function AnimatedRobot() {
+  return (
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g>
+        {/* Head */}
+        <ellipse cx="40" cy="40" rx="28" ry="28" fill="#E0E7FF" stroke="#6366F1" strokeWidth="2" />
+        {/* Eyes (animated blink) */}
+        <ellipse className="robot-eye" cx="32" cy="40" rx="4" ry="4" fill="#6366F1">
+          <animate attributeName="ry" values="4;1;4" keyTimes="0;0.5;1" dur="2s" repeatCount="indefinite" />
+        </ellipse>
+        <ellipse className="robot-eye" cx="48" cy="40" rx="4" ry="4" fill="#6366F1">
+          <animate attributeName="ry" values="4;1;4" keyTimes="0;0.5;1" dur="2s" repeatCount="indefinite" />
+        </ellipse>
+        {/* Smile */}
+        <path d="M32 50 Q40 56 48 50" stroke="#6366F1" strokeWidth="2" fill="none" />
+        {/* Antenna */}
+        <rect x="38" y="14" width="4" height="12" rx="2" fill="#6366F1">
+          <animate attributeName="y" values="14;10;14" keyTimes="0;0.5;1" dur="1.5s" repeatCount="indefinite" />
+        </rect>
+        <circle cx="40" cy="10" r="3" fill="#6366F1">
+          <animate attributeName="cy" values="10;6;10" keyTimes="0;0.5;1" dur="1.5s" repeatCount="indefinite" />
+        </circle>
+      </g>
+    </svg>
   );
 } 

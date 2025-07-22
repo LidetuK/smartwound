@@ -8,6 +8,16 @@ interface User {
   email: string;
   full_name: string;
   role: string;
+  gender?: string;
+  date_of_birth?: string;
+  phone_number?: string;
+  country?: string;
+  city?: string;
+  known_conditions?: string[];
+  allergies?: string[];
+  medication?: string[];
+  privacy_consent?: boolean;
+  profile_pic?: string;
 }
 
 interface AuthContextType {
@@ -78,4 +88,6 @@ export const useAuth = () => {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-}; 
+};
+
+export type { User }; 

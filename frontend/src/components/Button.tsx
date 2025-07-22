@@ -5,12 +5,14 @@ import React from "react";
 interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary";
   type?: "button" | "submit" | "reset";
+  disabled?: boolean;
 }
 
 export default function Button({
   className,
   children,
   variant = "primary",
+  disabled = false,
   ...props
 }: ButtonProps) {
   const baseClasses =
@@ -25,6 +27,7 @@ export default function Button({
   return (
     <button
       className={`${baseClasses} ${variantClasses[variant]} ${className || ""}`}
+      disabled={disabled}
       {...props}
     >
       {children}

@@ -3,17 +3,23 @@ import { Wound, WoundLog } from '../models/index.js';
 // Create a new wound
 export const createWound = async (req, res) => {
   try {
-    const { type, severity, image_url, status } = req.body;
+    const { type, severity, image_url, status, notes } = req.body;
+    // Validate that image_url is a Cloudinary URL
+    if (!image_url || typeof image_url !== 'string' || !image_url.startsWith('https://res.cloudinary.com/')) {
+      return res.status(400).json({ error: 'Invalid image_url. Only Cloudinary URLs are allowed.' });
+    }
     const wound = await Wound.create({
       user_id: req.user.id,
       type,
       severity,
       image_url,
-      status
+      status,
+      notes,
     });
     res.status(201).json(wound);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to create wound.' });
+    console.error("Error creating wound:", err);
+    res.status(500).json({ error: 'Failed to create wound.', details: err.message });
   }
 };
 

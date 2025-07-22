@@ -12,7 +12,8 @@ import uploadRoutes from './api/routes/upload.routes.js';
 import chatbotRoutes from './api/routes/chatbot.routes.js';
 import visionRoutes from './api/routes/vision.routes.js';
 import smartRoutes from './api/routes/smart.routes.js';
-import './api/models/index.js'; 
+import './api/models/index.js';
+import path from 'path';
 
 const app = express();
 app.use(express.json());
@@ -23,6 +24,7 @@ app.use('/api/wounds', woundRoutes);
 app.use('/api/clinics', clinicRoutes);
 app.use('/api/forum', forumRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/vision', visionRoutes);
 app.use('/api/smart', smartRoutes);

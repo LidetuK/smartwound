@@ -25,6 +25,10 @@ const Wound = sequelize.define('Wound', {
     type: DataTypes.STRING(20),
     defaultValue: 'open'
   },
+  notes: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW

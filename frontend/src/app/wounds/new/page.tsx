@@ -8,16 +8,22 @@ import apiClient from "@/services/api";
 import Button from "@/components/Button";
 import Link from "next/link";
 
+// Define a list of common wound types for the dropdown
+const woundTypes = ["cut", "scrape", "burn", "blister", "ulcer", "bruise", "puncture", "scar", "unknown"];
+const severityTypes = ["minor", "moderate", "severe", "unknown"];
+
 export default function NewWoundPage() {
   const { token, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [analysis, setAnalysis] = useState<{ type: string; severity: string } | null>(null);
+  const [analysis, setAnalysis] = useState<{ type: string; severity: string, raw_labels?: string[] } | null>(null);
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState("upload"); // upload, analyze, confirm
+  const [woundType, setWoundType] = useState("unknown");
+  const [severity, setSeverity] = useState("unknown");
 
   useEffect(() => {
     // This is the correct way to handle redirects to prevent render-time errors.
@@ -25,6 +31,14 @@ export default function NewWoundPage() {
       router.push('/login');
     }
   }, [isAuthLoading, token, router]);
+
+  // When analysis is set, update woundType and severity defaults
+  useEffect(() => {
+    if (analysis) {
+      setWoundType(analysis.type || "unknown");
+      setSeverity(analysis.severity || "unknown");
+    }
+  }, [analysis]);
 
   if (isAuthLoading || !token) {
     return (
@@ -83,8 +97,8 @@ export default function NewWoundPage() {
 
     try {
       await apiClient.post("/wounds", {
-        type: analysis.type,
-        severity: analysis.severity,
+        type: woundType,
+        severity: severity,
         image_url: imageUrl,
         status: "open", // Default status
         notes: notes,
@@ -150,15 +164,49 @@ export default function NewWoundPage() {
           {currentStep === "confirm" && analysis && (
             <div>
               <h2 className="mb-4 text-xl font-semibold text-gray-800">Analysis Results</h2>
-              <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg bg-gray-50 p-4">
-                <div>
-                  <p className="text-sm text-gray-500">Wound Type</p>
-                  <p className="text-lg font-bold capitalize">{analysis.type}</p>
+              <div className="mb-6 rounded-lg bg-gray-50 p-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Wound Type</p>
+                      <select
+                        value={woundType}
+                        onChange={(e) => setWoundType(e.target.value)}
+                        className="w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                      >
+                        {woundTypes.map(type => (
+                          <option key={type} value={type}>
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Estimated Severity</p>
+                      <select
+                        value={severity}
+                        onChange={(e) => setSeverity(e.target.value)}
+                        className="w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                      >
+                        {severityTypes.map(sev => (
+                          <option key={sev} value={sev}>
+                            {sev.charAt(0).toUpperCase() + sev.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500">Estimated Severity</p>
-                  <p className="text-lg font-bold capitalize">{analysis.severity}</p>
-                </div>
+                {analysis.raw_labels && (
+                  <div className="mt-4 border-t border-gray-200 pt-4">
+                    <p className="text-xs text-gray-500">AI Labels:</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                        {analysis.raw_labels.map((label, index) => (
+                            <span key={index} className="bg-gray-200 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                                {label}
+                            </span>
+                        ))}
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div>
