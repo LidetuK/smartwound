@@ -1,0 +1,113 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { Op } from "sequelize";
+import { User } from "../models/index.js";
+import { sendEmail } from "../utils/mailer.js";
+
+export const register = async (req, res) => {
+  const { email, password, full_name, privacy_consent } = req.body;
+
+  try {
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(password, salt);
+
+    const user = await User.create({
+      email,
+      password_hash,
+      full_name,
+      privacy_consent,
+    });
+
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    user.verification_token = verificationToken;
+    user.verification_token_expires_at = new Date(Date.now() + 3600000); // 1 hour from now
+    await user.save();
+
+    // Send verification email
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+    const emailHtml = `<p>Please verify your email by clicking on the link below:</p><a href="${verificationUrl}">${verificationUrl}</a>`;
+
+    await sendEmail(user.email, "Verify Your Email", emailHtml);
+
+    res.status(201).json({
+      message:
+        "Registration successful. Please check your email to verify your account.",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Registration failed." });
+  }
+};
+
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    if (!user.is_verified) {
+      return res.status(401).json({
+        message:
+          "Account not verified. Please check your email for a verification link.",
+      });
+    }
+
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+    res.json({ token });
+  } catch (error) {
+    console.error("Error during login process:", error);
+    res.status(500).json({ message: "Server error during login" });
+  }
+};
+
+export const verifyEmail = async (req, res) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return res.status(400).json({ message: "Verification token is required." });
+  }
+
+  try {
+    const user = await User.findOne({
+      where: {
+        verification_token: token,
+        verification_token_expires_at: { [Op.gt]: new Date() },
+      },
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired verification token." });
+    }
+
+    user.is_verified = true;
+    user.verification_token = null;
+    user.verification_token_expires_at = null;
+    await user.save();
+
+    res
+      .status(200)
+      .json({ message: "Email verified successfully. You can now log in." });
+  } catch (error) {
+    console.error("Email verification error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}; 

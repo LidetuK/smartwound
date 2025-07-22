@@ -1,0 +1,26 @@
+# Node dependencies
+/node_modules
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env*
+
+# Build output
+/build
+
+# Misc
+.DS_Store
+*.pem
+
+# Sensitive credentials
+gcloud-credentials.json
+
+# Coverage
+/coverage
+
+# Vercel
+.vercel 
