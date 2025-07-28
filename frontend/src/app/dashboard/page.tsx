@@ -8,6 +8,8 @@ import Button from "@/components/Button";
 import Link from "next/link";
 import apiClient from "@/services/api";
 import WoundCard from "@/components/WoundCard";
+import { FaUserEdit, FaKey, FaUserCircle } from "react-icons/fa";
+import { MdSupportAgent } from "react-icons/md";
 
 // Define the Wound type based on your API response
 interface Wound {
@@ -87,10 +89,19 @@ export default function DashboardPage() {
                 </h1>
               </div>
             </div>
-            <div className="flex items-center">
-              <span className="mr-4 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <span className="mr-2 text-sm text-gray-600">
                 Hello, {user?.full_name || "User"}
               </span>
+              {/* User Icon for Edit Profile */}
+              <button
+                title="Edit Profile"
+                onClick={() => router.push("/dashboard/profile-setup")}
+                className="text-indigo-600 hover:text-indigo-800 transition-colors text-2xl p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                style={{ lineHeight: 0 }}
+              >
+                <FaUserCircle />
+              </button>
               <Button
                 onClick={() => {
                   logout();
@@ -123,13 +134,48 @@ export default function DashboardPage() {
             </div>
           )}
           <div className="mb-8">
-            <h2 className="text-3xl font-bold leading-tight text-gray-900">
+            <h2 className="text-4xl font-extrabold leading-tight text-gray-900 tracking-tight drop-shadow-sm">
               Your Dashboard
             </h2>
           </div>
 
+          {/* Customer Service Card (left side, modern style) */}
+          <div className="mb-8">
+            <div className="rounded-3xl bg-gradient-to-br from-indigo-100/80 via-white/70 to-blue-100/80 backdrop-blur-lg shadow-2xl border border-indigo-200 p-8 flex flex-col sm:flex-row items-center gap-6 hover:scale-[1.02] hover:shadow-indigo-200 transition-all duration-300">
+              <div className="flex-shrink-0 flex items-center justify-center w-20 h-20 rounded-full bg-indigo-200/60 shadow-lg">
+                <MdSupportAgent className="w-12 h-12 text-indigo-600" />
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <div className="text-2xl font-extrabold text-indigo-700 mb-1 tracking-tight">Customer Service</div>
+                <div className="text-gray-700 mb-4 text-base">Need help? Contact our support team by email or phone.</div>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center sm:justify-start">
+                  <a
+                    href="https://mail.google.com/mail/?view=cm&to=support@smartwound.com&su=Customer%20Support%20Request&body=Hi%20Smart%20Wound%20Team%2C%0A%0AI%20need%20help%20with..."
+                    className="bg-indigo-600 text-white font-semibold rounded-lg py-2 px-6 shadow hover:bg-indigo-700 hover:scale-105 transition-all text-base flex items-center justify-center gap-2"
+                    target="_blank" rel="noopener noreferrer"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 12H8m8 0l-4-4m4 4l-4 4" />
+                    </svg>
+                    Email Support
+                  </a>
+                  <a
+                    href="tel:0965945748"
+                    className="bg-white text-indigo-700 font-semibold rounded-lg py-2 px-6 border border-indigo-200 shadow hover:bg-indigo-50 hover:scale-105 transition-all text-base flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h2.28a2 2 0 011.789 1.106l1.387 2.773a2 2 0 01-.327 2.327l-1.1 1.1a16.001 16.001 0 006.586 6.586l1.1-1.1a2 2 0 012.327-.327l2.773 1.387A2 2 0 0121 18.72V21a2 2 0 01-2 2h-1C9.163 23 1 14.837 1 5V4a2 2 0 012-2h1z" />
+                    </svg>
+                    Call Center
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Cards */}
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {/* Action Cards */}
+            {/* Left/Main Content */}
             <div className="col-span-1 md:col-span-2">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <ActionCard
@@ -167,49 +213,12 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Profile/Info Panel */}
-            <div className="col-span-1">
-              <div className="rounded-lg bg-white p-6 shadow flex flex-col items-center">
-                <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
-                  Your Profile
-                </h3>
-                {user?.profile_pic ? (
-                  <img
-                    src={user.profile_pic}
-                    alt="Profile"
-                    className="h-24 w-24 rounded-full object-cover border-2 border-indigo-200 mb-4"
-                  />
-                ) : (
-                  <span className="h-24 w-24 flex items-center justify-center rounded-full bg-indigo-100 text-5xl text-indigo-300 mb-4">
-                    👤
-                  </span>
-                )}
-                <div className="w-full">
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">Email:</span> {user?.email}
-                  </p>
-                  <p className="mt-2 text-sm text-gray-600">
-                    <span className="font-medium">Role:</span> {user?.role}
-                  </p>
-                  <div className="mt-6 flex flex-col gap-2">
-                    <Button
-                      type="button"
-                      className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg py-2"
-                      onClick={() => router.push("/dashboard/profile-setup")}
-                    >
-                      Edit Profile
-                    </Button>
-                    <Button
-                      type="button"
-                      className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg py-2"
-                      onClick={() => router.push("/dashboard/reset-password")}
-                    >
-                      Reset Password
-                    </Button>
-                  </div>
-                </div>
+            {/* Profile/Info Panel (right side) - removed */}
+            {/* <div className="col-span-1">
+              <div className="rounded-2xl bg-white/60 backdrop-blur-lg p-8 shadow-xl flex flex-col items-center border border-indigo-100" style={{boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.18)'}}>
+                ...
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </main>
@@ -221,10 +230,11 @@ function ActionCard({ title, description, href }: { title: string; description: 
   return (
     <Link
       href={href}
-      className="block rounded-lg bg-white p-6 shadow transition hover:shadow-md"
+      className="block rounded-2xl bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-8 shadow-lg transition hover:scale-105 hover:shadow-2xl border border-indigo-100"
+      style={{boxShadow: '0 4px 24px 0 rgba(80, 63, 205, 0.08)'}}
     >
-      <h4 className="text-lg font-bold text-gray-900">{title}</h4>
-      <p className="mt-1 text-sm text-gray-600">{description}</p>
+      <h4 className="text-xl font-extrabold text-gray-900 mb-2 tracking-tight">{title}</h4>
+      <p className="text-base text-gray-600">{description}</p>
     </Link>
   );
 } 
