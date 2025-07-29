@@ -1,6 +1,8 @@
 import { Groq } from "groq-sdk";
 import dotenv from 'dotenv';
-
+import Wound from '../models/wound.model.js';
+import WoundLog from '../models/woundlog.model.js';
+import { Op } from 'sequelize';
 dotenv.config();
 
 const groq = new Groq({
@@ -19,29 +21,55 @@ You must adhere to the following rules at all times:
 5.  **Be Supportive and Calm.** Your tone should be reassuring and supportive, not alarming.
 6.  **Keep it Concise.** Provide clear, actionable, and easy-to-understand information.
 
-You have access to the following context about the user's wound:
-- Type: {wound_type}
-- Severity: {wound_severity}
-- Days tracked: {days_tracked}
-- Number of healing logs: {total_logs}
+You have access to the following context about the user's wounds:
+{wound_context}
 
-Use this context to provide more relevant advice, but still maintain all safety guidelines above.
+Use this context to provide more relevant and personalized advice, but still maintain all safety guidelines above.
 `;
 
 export const handleChat = async (req, res) => {
   try {
     const { message, context = {}, history = [] } = req.body;
+    const userId = req.user?.id; // Assuming user ID is available from auth middleware
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required.' });
     }
 
+    // Fetch user's wound data for context
+    let woundContext = "No wound data available.";
+    
+    if (userId) {
+      try {
+        const wounds = await Wound.findAll({
+          where: { user_id: userId },
+          order: [['created_at', 'DESC']],
+          limit: 5 // Get latest 5 wounds
+        });
+
+        if (wounds.length > 0) {
+          const woundSummaries = await Promise.all(wounds.map(async (wound) => {
+            const logs = await WoundLog.findAll({
+              where: { wound_id: wound.id },
+              order: [['created_at', 'DESC']]
+            });
+            
+            const daysTracked = Math.floor((new Date() - new Date(wound.created_at)) / (1000 * 60 * 60 * 24));
+            
+            return `- ${wound.type} (${wound.severity} severity): Created ${daysTracked} days ago, Status: ${wound.status}${wound.notes ? `, Notes: "${wound.notes}"` : ''}, Healing logs: ${logs.length}`;
+          }));
+          
+          woundContext = `Current wounds being tracked:\n${woundSummaries.join('\n')}`;
+        }
+      } catch (error) {
+        console.error('Error fetching wound context:', error);
+        woundContext = "Unable to fetch wound data.";
+      }
+    }
+
     // Replace context placeholders in system prompt
     const contextualizedPrompt = systemPrompt
-      .replace("{wound_type}", context.wound_type || "unknown")
-      .replace("{wound_severity}", context.wound_severity || "unknown")
-      .replace("{days_tracked}", context.days_tracked || "0")
-      .replace("{total_logs}", context.total_logs || "0");
+      .replace("{wound_context}", woundContext);
 
     const messages = [
       {
@@ -57,7 +85,7 @@ export const handleChat = async (req, res) => {
 
     const chatCompletion = await groq.chat.completions.create({
       messages,
-      model: 'llama3-8b-8192', // Or another model like 'mixtral-8x7b-32768'
+      model: 'llama-3.3-70b-versatile',
     });
 
     res.json({
