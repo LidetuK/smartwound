@@ -11,6 +11,7 @@ import Image from "next/image";
 import Tabs from "@/components/Tabs";
 import HealingTimeline from "@/components/HealingTimeline";
 import ChatPanel from "@/components/ChatPanel";
+import { FaFlag, FaExclamationTriangle } from "react-icons/fa";
 
 
 // Define types for Wound and WoundLog
@@ -21,6 +22,17 @@ interface Wound {
   image_url: string;
   notes: string;
   created_at: string;
+  flagged: boolean;
+  status: string;
+}
+
+interface AdminComment {
+  id: string;
+  comment: string;
+  createdAt: string;
+  admin?: {
+    full_name: string;
+  };
 }
 
 interface WoundLog {
@@ -43,6 +55,7 @@ export default function WoundDetailPage() {
 
   const [wound, setWound] = useState<Wound | null>(null);
   const [logs, setLogs] = useState<WoundLog[]>([]);
+  const [adminComments, setAdminComments] = useState<AdminComment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   const [newLogNotes, setNewLogNotes] = useState("");
@@ -57,8 +70,34 @@ export default function WoundDetailPage() {
             apiClient.get(`/wounds/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
             apiClient.get(`/wounds/${id}/logs`, { headers: { Authorization: `Bearer ${token}` } })
           ]);
-          setWound(woundRes.data);
+          const woundData = woundRes.data;
+          setWound(woundData);
           setLogs(logsRes.data);
+          
+          // Fetch admin comments for flagged wounds
+          if (woundData.flagged === true) {
+            try {
+              const commentsRes = await fetch(`http://localhost:3001/api/admin/wounds/${id}/comments`, {
+                headers: { 
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+              });
+              
+              if (commentsRes.ok) {
+                const commentsData = await commentsRes.json();
+                console.log('✅ Fetched admin comments:', commentsData);
+                setAdminComments(commentsData || []);
+              } else {
+                console.error('❌ API response not ok:', commentsRes.status, commentsRes.statusText);
+                setAdminComments([]);
+              }
+            } catch (error) {
+              console.error('❌ Failed to fetch admin comments:', error);
+              setAdminComments([]);
+            }
+          }
         } catch (error) {
           console.error("Failed to fetch wound data:", error);
           toast.error("Wound not found or access denied.");
@@ -160,79 +199,285 @@ export default function WoundDetailPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
-      <div className="mx-auto max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4 sm:p-8">
+      <div className="mx-auto max-w-7xl">
         <nav className="mb-8">
-          <Link href="/dashboard" className="text-indigo-600 hover:underline">
-            &larr; Back to Dashboard
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 transition-colors duration-200 font-medium">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Dashboard
           </Link>
         </nav>
+        
+        {/* Flagged Wound Alert Banner */}
+        {wound.flagged && (
+          <div className="mb-8 rounded-xl bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-500 p-6 shadow-lg animate-pulse">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <FaExclamationTriangle className="h-5 w-5 text-red-600" />
+                </div>
+              </div>
+              <div className="ml-4 flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-bold text-red-800">
+                    🚨 Medical Attention Required
+                  </h3>
+                  <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-semibold animate-bounce">
+                    URGENT
+                  </span>
+                </div>
+                <div className="bg-white/70 rounded-lg p-4 border border-red-200">
+                  <p className="text-red-700 leading-relaxed">
+                    This wound has been flagged by our medical team and requires your immediate attention. 
+                    Please review the medical team comments below and consider consulting with a healthcare 
+                    professional for proper medical advice.
+                  </p>
+                </div>
+                {adminComments.length > 0 && (
+                  <div className="mt-4 bg-blue-100 rounded-lg p-3 border border-blue-200">
+                    <p className="text-blue-800 font-medium flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                      </svg>
+                      {adminComments.length} medical team comment{adminComments.length !== 1 ? 's' : ''} available
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
-          {/* Left Panel: Wound Info & New Log Form */}
-          <div className="md:col-span-1 space-y-8">
-            <div className="rounded-lg bg-white p-6 shadow-lg sticky top-8">
-                <h1 className="text-2xl font-bold text-gray-900 capitalize">{wound.type}</h1>
-                <p className="text-md capitalize text-gray-600">Severity: {wound.severity}</p>
-                <div className="relative mt-4 h-48 w-full">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 gap-8 xl:grid-cols-4">
+          {/* Left Panel: Wound Info */}
+          <div className="xl:col-span-1 space-y-6">
+            <div className={`rounded-2xl p-8 shadow-xl sticky top-8 backdrop-blur-sm border ${
+              wound.flagged 
+                ? 'bg-gradient-to-br from-red-50/90 to-orange-50/90 border-red-200' 
+                : 'bg-white/90 border-gray-200'
+            }`}>
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent capitalize">
+                      {wound.type}
+                    </h1>
+                    <p className="text-sm text-gray-500 mt-1">Wound Details</p>
+                  </div>
+                  {wound.flagged && (
+                    <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-2 rounded-full text-xs font-bold flex items-center gap-2 shadow-lg animate-pulse">
+                      <FaFlag className="w-3 h-3" />
+                      FLAGGED
+                    </div>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-white/70 rounded-xl p-4 border border-gray-200">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-1">Severity</p>
+                    <p className="text-lg font-bold capitalize text-gray-800">{wound.severity}</p>
+                  </div>
+                  <div className="bg-white/70 rounded-xl p-4 border border-gray-200">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-1">Status</p>
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                      wound.status === 'healing' ? 'bg-green-100 text-green-800' :
+                      wound.status === 'infected' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      <div className={`w-2 h-2 rounded-full mr-2 ${
+                        wound.status === 'healing' ? 'bg-green-400' :
+                        wound.status === 'infected' ? 'bg-red-400' :
+                        'bg-yellow-400'
+                      }`}></div>
+                      {wound.status}
+                    </span>
+                  </div>
+                </div>
+                
+                {wound.flagged && (
+                  <div className="mb-6 p-4 bg-gradient-to-r from-red-100 to-orange-100 border border-red-300 rounded-xl">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                        <FaExclamationTriangle className="text-white w-4 h-4" />
+                      </div>
+                      <span className="text-sm font-bold text-red-800">
+                        Medical Attention Required
+                      </span>
+                    </div>
+                    <p className="text-sm text-red-700 leading-relaxed">
+                      This wound requires immediate medical attention. Please review the medical team comments below.
+                    </p>
+                  </div>
+                )}
+                
+                <div className="relative mt-6 h-64 w-full group">
                     <Image
                         src={wound.image_url}
                         alt={`Initial image of a ${wound.type}`}
                         layout="fill"
                         objectFit="cover"
-                        className="rounded-lg"
+                        className="rounded-2xl shadow-lg transition-transform duration-300 group-hover:scale-105"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
+                    <div className="absolute bottom-4 left-4 text-white">
+                      <p className="text-sm font-medium">Initial Photo</p>
+                    </div>
                 </div>
-                <div className="mt-4 border-t pt-4">
-                    <p className="text-sm text-gray-700">{wound.notes || "No initial notes."}</p>
-                    <p className="mt-2 text-xs text-gray-400">
-                        First tracked on: {new Date(wound.created_at).toLocaleDateString()}
-                    </p>
+                
+                <div className="mt-6 bg-white/70 rounded-xl p-4 border border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wide">Initial Notes</h4>
+                    <p className="text-gray-800 leading-relaxed">{wound.notes || "No initial notes provided."}</p>
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-xs text-gray-500 flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                        </svg>
+                        First tracked on {new Date(wound.created_at).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </p>
+                    </div>
                 </div>
+                
+                {/* Admin Comments Section */}
+                {wound.flagged && adminComments.length > 0 && (
+                  <div className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-blue-800">
+                          Medical Team Comments
+                        </h3>
+                        <p className="text-sm text-blue-600">Professional medical guidance</p>
+                      </div>
+                    </div>
+                    <div className="space-y-4 max-h-64 overflow-y-auto">
+                      {adminComments.map((comment, index) => (
+                        <div key={comment.id} className="bg-white border border-blue-200 p-4 rounded-xl shadow-sm">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-blue-600 font-bold text-sm">{index + 1}</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-gray-800 leading-relaxed mb-3">{comment.comment}</p>
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                    </svg>
+                                  </div>
+                                  <span className="text-sm font-semibold text-blue-800">
+                                    {comment.admin?.full_name || 'Medical Team'}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                  {new Date(comment.createdAt).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
             </div>
+          </div>
 
-            <div className="rounded-lg bg-white p-6 shadow-lg">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">Add a New Healing Log</h2>
-                <form onSubmit={handleAddLog} className="space-y-4">
+          {/* Middle Panel: New Healing Log Form */}
+          <div className="xl:col-span-1">
+            <div className="rounded-2xl bg-gradient-to-br from-white to-gray-50 p-8 shadow-xl border border-gray-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      Add Healing Log
+                    </h2>
+                    <p className="text-sm text-gray-500">Track your wound's progress</p>
+                  </div>
+                </div>
+                <form onSubmit={handleAddLog} className="space-y-6">
                     <div>
-                        <label htmlFor="log-notes" className="mb-1 block text-sm font-medium text-gray-700">
-                            Notes
+                        <label htmlFor="log-notes" className="mb-2 block text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                            Progress Notes
                         </label>
                         <textarea
                             id="log-notes"
                             value={newLogNotes}
                             onChange={(e) => setNewLogNotes(e.target.value)}
-                            rows={3}
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            placeholder="e.g., 'Swelling has reduced...'"
+                            rows={4}
+                            className="block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-white/70 backdrop-blur-sm transition-all duration-200"
+                            placeholder="Describe any changes you've noticed: pain level, swelling, color, healing progress..."
                         />
                     </div>
                     <div>
-                        <label htmlFor="log-image" className="mb-1 block text-sm font-medium text-gray-700">
-                           Photo
+                        <label htmlFor="log-image" className="mb-2 block text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                           Progress Photo
                         </label>
-                        <input
-                            id="log-image"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-50 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-indigo-600 hover:file:bg-indigo-100"
-                        />
+                        <div className="relative">
+                          <input
+                              id="log-image"
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFileChange}
+                              className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-xl file:border-0 file:bg-gradient-to-r file:from-indigo-50 file:to-purple-50 file:py-3 file:px-6 file:text-sm file:font-semibold file:text-indigo-600 hover:file:from-indigo-100 hover:file:to-purple-100 transition-all duration-200 border border-gray-300 rounded-xl bg-white/70"
+                          />
+                        </div>
                         {newLogImageFile && (
-                            <div className="mt-4">
-                                <img src={URL.createObjectURL(newLogImageFile)} alt="New log preview" className="max-h-40 w-auto rounded-lg" />
+                            <div className="mt-4 relative">
+                                <img 
+                                  src={URL.createObjectURL(newLogImageFile)} 
+                                  alt="New log preview" 
+                                  className="max-h-48 w-auto rounded-2xl shadow-lg border border-gray-200" 
+                                />
+                                <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                  Ready to upload
+                                </div>
                             </div>
                         )}
                     </div>
-                    <Button type="submit" disabled={isSubmitting} className="w-full">
-                        {isSubmitting ? "Saving..." : "Add Log"}
+                    <Button type="submit" disabled={isSubmitting} className="w-full !bg-gradient-to-r !from-indigo-500 !to-purple-600 !text-white !py-3 !rounded-xl !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-200">
+                        {isSubmitting ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Saving Progress...
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Add Healing Log
+                          </div>
+                        )}
                     </Button>
                 </form>
             </div>
           </div>
 
           {/* Right Panel: Tabs for History and Chat */}
-          <div className="md:col-span-2">
+          <div className="xl:col-span-2">
             <Tabs tabs={tabs} />
           </div>
         </div>

@@ -29,6 +29,10 @@ const Wound = sequelize.define('Wound', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  flagged: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW

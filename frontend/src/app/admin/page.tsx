@@ -2,13 +2,16 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Button from "@/components/Button";
 import Link from "next/link";
 
 export default function AdminDashboardPage() {
   const { user, token, isLoading, logout } = useAuth();
   const router = useRouter();
+  const [stats, setStats] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
   useEffect(() => {
     // First, wait for auth state to load
@@ -18,10 +21,30 @@ export default function AdminDashboardPage() {
     // If not loading and there's no token, or if the user is not an admin, redirect
     if (!token || user?.role !== 'admin') {
       router.push('/dashboard'); // Redirect non-admins to the user dashboard
+      return;
     }
+    // Fetch stats
+    const fetchStats = async () => {
+      setStatsLoading(true);
+      setStatsError(null);
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'}/admin/stats`, {
+          credentials: 'include',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error('Failed to fetch stats');
+        const data = await res.json();
+        setStats(data);
+      } catch (err: any) {
+        setStatsError(err.message || 'Unknown error');
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    fetchStats();
   }, [isLoading, token, user, router]);
 
-  // Show a loading state while we verify the user's role
+  // Show a loading state while we verify the user's role or stats
   if (isLoading || !token || user?.role !== 'admin') {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -59,10 +82,10 @@ export default function AdminDashboardPage() {
         
         {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard title="Total Users" value="1,234" />
-            <StatCard title="Wounds Tracked" value="5,678" />
-            <StatCard title="Flagged Posts" value="12" />
-            <StatCard title="Active Clinics" value="56" />
+          <StatCard title="Total Users" value={statsLoading ? '...' : (stats?.users?.toLocaleString() ?? 'N/A')} />
+          <StatCard title="Wounds Tracked" value={statsLoading ? '...' : (stats?.wounds?.toLocaleString() ?? 'N/A')} />
+          <StatCard title="Flagged Posts" value={statsLoading ? '...' : (stats?.flaggedContent?.posts?.toLocaleString() ?? 'N/A')} />
+          <StatCard title="Active Clinics" value={statsLoading ? '...' : (stats?.clinics?.toLocaleString() ?? 'N/A')} />
         </div>
 
         {/* Action Panels */}

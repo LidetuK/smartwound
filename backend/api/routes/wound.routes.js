@@ -7,7 +7,8 @@ import {
   updateWound,
   deleteWound,
   addWoundLog,
-  getWoundLogs
+  getWoundLogs,
+  getWoundAdminComments
 } from '../controllers/woundController.js';
 import { woundValidation } from '../middleware/validation.middleware.js';
 
@@ -21,5 +22,6 @@ router.delete('/:id', verifyToken, deleteWound);
 
 router.post('/:woundId/logs', verifyToken, addWoundLog);
 router.get('/:woundId/logs', verifyToken, getWoundLogs);
+router.get('/:id/admin-comments', verifyToken, getWoundAdminComments);
 
 export default router; 

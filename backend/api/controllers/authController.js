@@ -67,8 +67,14 @@ export const login = async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "1d",
+    });
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false, // Set to true in production with HTTPS
+      maxAge: 24 * 60 * 60 * 1000
     });
     res.json({ token });
   } catch (error) {

@@ -6,6 +6,7 @@ import ForumPost from './forumpost.model.js';
 import ForumComment from './forumcomment.model.js';
 import Reminder from './reminder.model.js';
 import Escalation from './escalation.model.js';
+import WoundComment from './woundcomment.model.js';
 
 export {
   User,
@@ -15,5 +16,6 @@ export {
   ForumPost,
   ForumComment,
   Reminder,
-  Escalation
-}; 
+  Escalation,
+  WoundComment
+};

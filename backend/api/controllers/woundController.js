@@ -1,4 +1,4 @@
-import { Wound, WoundLog } from '../models/index.js';
+import { Wound, WoundLog, WoundComment, User } from '../models/index.js';
 
 // Create a new wound
 export const createWound = async (req, res) => {
@@ -26,10 +26,22 @@ export const createWound = async (req, res) => {
 // Get all wounds for current user
 export const getWounds = async (req, res) => {
   try {
-    const wounds = await Wound.findAll({ where: { user_id: req.user.id } });
+    console.log('Fetching wounds for user:', req.user.id);
+    const wounds = await Wound.findAll({ 
+      where: { user_id: req.user.id },
+      order: [['created_at', 'DESC']]
+    });
+    console.log('Found wounds:', wounds.length);
+    console.log('Sample wound data:', wounds[0] ? {
+      id: wounds[0].id,
+      type: wounds[0].type,
+      flagged: wounds[0].flagged,
+      status: wounds[0].status
+    } : 'No wounds found');
     res.json(wounds);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch wounds.' });
+    console.error('Error fetching wounds:', err);
+    res.status(500).json({ error: 'Failed to fetch wounds.', details: err.message });
   }
 };
 
@@ -38,8 +50,31 @@ export const getWound = async (req, res) => {
   try {
     const wound = await Wound.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!wound) return res.status(404).json({ error: 'Wound not found.' });
-    res.json(wound);
+    
+    // If wound is flagged, include admin comments
+    let adminComments = [];
+    if (wound.flagged) {
+      const comments = await WoundComment.findAll({
+        where: { wound_id: wound.id },
+        include: [{ 
+          model: User, 
+          as: 'admin', 
+          attributes: ['id', 'full_name', 'email'] 
+        }],
+        order: [['created_at', 'ASC']]
+      });
+      
+      adminComments = comments.map(comment => ({
+        id: comment.id,
+        comment: comment.comment,
+        createdAt: comment.created_at,
+        admin: comment.admin
+      }));
+    }
+    
+    res.json({ ...wound.toJSON(), adminComments });
   } catch (err) {
+    console.error('Error fetching wound:', err);
     res.status(500).json({ error: 'Failed to fetch wound.' });
   }
 };
@@ -94,5 +129,46 @@ export const getWoundLogs = async (req, res) => {
     res.json(logs);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch wound logs.' });
+  }
+};
+
+// Get admin comments for a user's wound
+export const getWoundAdminComments = async (req, res) => {
+  try {
+    // Verify the wound belongs to the user
+    const wound = await Wound.findOne({ 
+      where: { 
+        id: req.params.id, 
+        user_id: req.user.id 
+      } 
+    });
+    
+    if (!wound) {
+      return res.status(404).json({ error: 'Wound not found.' });
+    }
+    
+    // Get admin comments for this wound
+    const comments = await WoundComment.findAll({
+      where: { wound_id: req.params.id },
+      include: [{ 
+        model: User, 
+        as: 'admin', 
+        attributes: ['id', 'full_name', 'email'] 
+      }],
+      order: [['created_at', 'ASC']]
+    });
+    
+    // Transform the response to match frontend expectations
+    const transformedComments = comments.map(comment => ({
+      id: comment.id,
+      comment: comment.comment,
+      createdAt: comment.created_at,
+      admin: comment.admin
+    }));
+    
+    res.json(transformedComments);
+  } catch (err) {
+    console.error('Error fetching wound admin comments:', err);
+    res.status(500).json({ error: 'Failed to fetch admin comments.' });
   }
 }; 
