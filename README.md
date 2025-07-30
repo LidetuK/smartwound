@@ -1,358 +1,300 @@
-Smart Wound - Full Technical & Strategic Documentation
-Overview
-Smart Wound is an AI-assisted wound care companion app designed to simplify and improve self-managed wound care. The product leverages existing AI APIs (e.g., GPT-4, Google Vision) to offer guidance, progress tracking, and access to healthcare resources without attempting to replace clinical diagnosis.
-This documentation outlines the vision, strengths, risks, and a complete development plan using a hybrid stack of React (frontend), Node.js (backend), MongoDB (for unstructured data), and PostgreSQL (for structured data).
-
-1. Core Vision
-What Smart Wound Is:
-An AI-assisted wound care companion app.
-
-
-Combines LLMs (e.g., GPT-4, Claude) with image recognition APIs (e.g., Google Vision API).
-
-
-Helps users:
-
-
-Identify basic wound types
-
-
-Get safe care guidance
-
-
-Track wound healing with daily photos
-
-
-Receive smart reminders
-
-
-Connect with doctors or a peer community
-
-
-
-What It Is Not:
-A diagnostic tool
-
-
-A medical replacement
-
-
-A custom AI model trainer (no proprietary models at this stage)
-
-
-Target Users:
-People in rural or low-access areas
-
-
-Elderly, diabetic, or chronic wound patients
-
-
-NGO-run healthcare centers
-
-
-
-2. Tech Stack
-Frontend:
-React with Tailwind CSS
-
-
-PWA-capable
-
-
-Responsive UI/UX for mobile-first
-
-
-Backend:
-Node.js with Express
-
-
-Databases:
-MongoDB (Unstructured data):
-
-
-Wound logs
-
-
-Chat sessions
-
-
-Forum posts
-
-
-User reminders
-
-
-PostgreSQL (Structured data):
-
-
-Users
-
-
-Clinics
-
-
-Escalation logs
-
-
-Moderation flags
-
-
-Billing and subscriptions
-
-
-APIs:
-GPT-4 or Claude (via OpenAI or Anthropic)
-
-
-Google Vision API (pre-trained) for Beta
-
-
-Google Maps API (for clinic locator)
-
-
-Cloudinary or Firebase Storage for image hosting
-
-
-
-3. Core Features & Modules
-1. Wound Photo Check
-Upload a photo
-
-
-Analyze with Google Vision API
-
-
-Classify (burn, scrape, ulcer, etc.)
-
-
-Trigger alert for severe wounds
-
-
-Disclaimer shown before analysis
-
-
-2. GPT-Powered Chatbot
-Powered by GPT-4 or Claude
-
-
-FAQ and general wound advice
-
-
-Reinforce: "This is not a diagnosis."
-
-
-Conversation history saved
-
-
-3. Healing Tracker
-Daily photo upload
-
-
-Timestamped notes
-
-
-Progress chart (frontend graph)
-
-
-Smart reminders: re-cleaning, dressing, check-ins
-
-
-Trigger alert if no improvement in X days
-
-
-4. Doctor Finder & Escalation
-Integrate Google Maps for clinic search
-
-
-Escalation logic:
-
-
-Non-healing wounds after 5+ days
-
-
-Image classified as severe
-
-
-Key symptoms (pus, swelling, fever)
-
-
-“Book a Doctor” CTA always visible
-
-
-
-
-
-5. Community Forum
-Anonymous peer Q&A
-
-
-AI and human moderation
-
-
-Chat grouping: General, By wound type, Language
-
-
-Admin tools for flagging/removing posts
-
-
-6. Admin/Clinics Dashboard
-View wound logs
-
-
-Get notified of risk triggers
-
-
-Message users (telehealth)
-
-
-
-4. Development Roadmap
-Phase 1: Planning & Setup
-Define MVP features
-
-
-Prepare UI wireframes
-
-
-Set up GitHub, CI/CD, staging environment
-
-
-Phase 2: Core Modules
-Vision API integration for image classification
-
-
-GPT chatbot integration with disclaimer and context restrictions
-
-
-User registration/login (email, phone, OAuth)
-
-
-MongoDB schema for wound tracking
-
-
-PostgreSQL schema for users, clinics, moderation, billing
-
-
-Phase 3: Functionality Buildout
-Healing tracker + reminder logic
-
-
-Escalation triggers
-
-
-Google Maps integration
-
-
-Community chat & moderation filters
-
-
-Admin dashboard for NGOs/Clinics
-
-
-Phase 4: Testing & Pilot
-Onboard 50 test users (e.g., from a diabetes clinic)
-
-
-Collect feedback on trust, usability, and improvement
-
-
-Fix edge case failures in image prediction
-
-
-Adjust escalation timing/accuracy
-
-
-Phase 5: Revenue Hooks
-Free: Photo tracking, chatbot, community
-
-
-Premium:
-
-
-Telehealth consults
-
-
-Wound care supply delivery
-
-
-B2B:
-
-
-NGO or clinic dashboard for remote monitoring
-
-
-Patient data export/alerts
-
-
-
-5. Privacy, Ethics, & Safety
-Data Privacy
-Full GDPR-style consent
-
-
-Option to delete data anytime
-
-
-No location tracking without consent
-
-
-Disclaimers
-Show before image upload or chatbot use
-
-
-Repeated inside UI/UX to reinforce boundaries
-
-
-Safety Nets
-Escalate if system is unsure
-
-
-Do not proceed with analysis without showing disclaimer
-
-
-Community moderated by real humans
-
-
-
-6. Budget & Costs
-APIs
-GPT-4: ~$0.01–$0.03 per chat
-
-
-Google Vision API: 1,000 images/month free, then ~$1.50/1,000
-
-
-Google Maps: Free up to 28,000 loads/month
-
-
-
-Hosting
-Render / Vercel for web frontend
-
-
-Railway for backend
-
-
-Optional Tools
-PostHog / Mixpanel for usage tracking
-
-
-Stripe for premium billing
-
-
-
-7. Goals
-We are not creating cutting-edge medical AI. We are:
-Delivering guidance that helps users act sooner
-
-
-Helping people avoid infection and worsening wounds
-
-
-Giving users daily structure and peace of mind
-
-
-Building a safe digital space to feel supported
+# 🩹 SmartWound - AI-Assisted Wound Care Companion
+
+## 📋 Table of Contents
+- [Overview](#overview)
+- [✅ Currently Implemented Features](#-currently-implemented-features)
+- [❌ Not Yet Implemented](#-not-yet-implemented)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [🚀 Getting Started](#-getting-started)
+- [📱 Features Overview](#-features-overview)
+- [🔐 Authentication & Security](#-authentication--security)
+- [🏥 Medical Safety Features](#-medical-safety-features)
+- [🎯 Project Goals](#-project-goals)
+- [📊 Development Status](#-development-status)
+
+## Overview
+
+**SmartWound** is an AI-assisted wound care companion app designed to help users track, monitor, and manage wound healing with professional medical oversight. The application combines AI vision analysis, community support, and medical professional moderation to provide comprehensive wound care assistance.
+
+> ⚠️ **Important Medical Disclaimer**: This application is NOT a diagnostic tool and does not replace professional medical advice. Always consult healthcare professionals for serious wounds or medical concerns.
+
+## ✅ Currently Implemented Features
+
+### 🔐 User Authentication System
+- ✅ User registration and login
+- ✅ JWT-based authentication with httpOnly cookies
+- ✅ Role-based access control (User/Admin)
+- ✅ Secure password hashing
+- ✅ Session management
+
+### 🩹 Wound Tracking & Management
+- ✅ **Wound Creation & Upload**: Users can create wound records with photos
+- ✅ **AI Vision Analysis**: 
+  - Groq Vision (Meta LLaMA) integration for wound analysis
+  - Google Vision API support
+  - Structured JSON analysis + plain English summaries
+  - Confidence scoring and wound type classification
+- ✅ **Wound Detail Pages**: Individual wound tracking with photo history
+- ✅ **Wound Status Tracking**: Healing progress monitoring
+- ✅ **Photo Timeline**: Historical photo comparison for healing progress
+
+### 🏥 Medical Professional Features
+- ✅ **Admin Dashboard**: Complete moderation interface for medical staff
+- ✅ **Wound Flagging System**: Medical professionals can flag concerning wounds
+- ✅ **Admin Comments**: Medical team can add professional guidance to flagged wounds
+- ✅ **Moderation Queue**: Organized interface for reviewing flagged content
+- ✅ **User Notifications**: Flagged wound alerts and medical guidance display
+
+### 💬 Community Forum System
+- ✅ **Forum Posts**: Users can create posts by wound type
+- ✅ **Comments & Discussions**: Threaded comment system
+- ✅ **Search & Filter**: Search posts and filter by wound type
+- ✅ **Moderation Tools**: Admin can flag/delete inappropriate content
+- ✅ **Wound Type Categories**: Cut, Burn, Scrape, Bruise, Puncture, Surgical, Diabetic, Pressure, Other
+
+### 📊 User Dashboard
+- ✅ **Wound Overview**: Visual cards showing all user wounds
+- ✅ **Flagged Wound Alerts**: Prominent notifications for medical attention
+- ✅ **Quick Actions**: Easy access to create wounds, forum, and AI analysis
+- ✅ **Status Indicators**: Visual wound status and healing progress
+- ✅ **Admin Comments Display**: Medical team guidance prominently shown
+
+### 🤖 AI Integration
+- ✅ **Multiple AI Providers**: Groq Vision, Google Vision, ChatGPT support
+- ✅ **Smart Analysis**: Wound type detection, severity assessment
+- ✅ **Medical Prompting**: Specialized prompts for wound analysis
+- ✅ **Fallback Systems**: Graceful handling of API failures
+- ✅ **Analysis History**: Stored AI analysis results
+
+### 🔧 Backend Infrastructure
+- ✅ **PostgreSQL Database**: User data, wounds, forum posts, admin comments
+- ✅ **RESTful API**: Complete CRUD operations for all features
+- ✅ **File Upload**: Image handling with proper validation
+- ✅ **Error Handling**: Comprehensive error management
+- ✅ **CORS Configuration**: Secure cross-origin requests
+- ✅ **Input Validation**: Data sanitization and validation
+
+### 🎨 Frontend (Next.js)
+- ✅ **Responsive Design**: Mobile-first approach with Tailwind CSS
+- ✅ **Modern UI/UX**: Clean, medical-appropriate interface
+- ✅ **Real-time Updates**: Dynamic content updates
+- ✅ **Loading States**: Proper loading indicators
+- ✅ **Error Boundaries**: Graceful error handling
+- ✅ **Navigation**: Intuitive routing and breadcrumbs
+
+## ❌ Not Yet Implemented
+
+### 🔔 Notification System
+- ❌ Push notifications for wound check reminders
+- ❌ Email notifications for flagged wounds
+- ❌ SMS alerts for urgent medical attention
+- ❌ Healing milestone notifications
+
+### 📅 Reminder & Scheduling
+- ❌ Smart wound care reminders (cleaning, dressing changes)
+- ❌ Follow-up appointment scheduling
+- ❌ Medication reminders
+- ❌ Progress check-in prompts
+
+### 🗺️ Healthcare Provider Integration
+- ❌ Google Maps clinic/doctor finder
+- ❌ Telemedicine appointment booking
+- ❌ Healthcare provider directory
+- ❌ Insurance integration
+
+### 📊 Advanced Analytics
+- ❌ Healing progress charts and graphs
+- ❌ Wound healing statistics
+- ❌ Comparative healing analysis
+- ❌ Predictive healing timelines
+
+### 🤖 Advanced AI Features
+- ❌ Custom trained wound classification models
+- ❌ Automated severity escalation triggers
+- ❌ AI-powered healing predictions
+- ❌ Personalized care recommendations
+
+### 💰 Monetization Features
+- ❌ Premium subscription tiers
+- ❌ Telehealth consultation booking
+- ❌ Wound care supply ordering
+- ❌ B2B clinic dashboard licensing
+
+### 📱 Mobile App
+- ❌ Native iOS/Android applications
+- ❌ Offline functionality
+- ❌ Camera integration optimization
+- ❌ Push notification support
+
+### 🔒 Advanced Security
+- ❌ Two-factor authentication
+- ❌ HIPAA compliance features
+- ❌ Advanced audit logging
+- ❌ Data encryption at rest
+
+### 🌐 Internationalization
+- ❌ Multi-language support
+- ❌ Localized medical guidance
+- ❌ Regional healthcare integration
+- ❌ Cultural wound care practices
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **Framework**: Next.js 14 with TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: Custom components with Tailwind
+- **State Management**: React hooks and context
+- **HTTP Client**: Fetch API
+
+### Backend
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: PostgreSQL
+- **Authentication**: JWT with httpOnly cookies
+- **File Upload**: Multer middleware
+- **Validation**: Custom validation middleware
+
+### AI & External APIs
+- **Vision AI**: Groq Vision (Meta LLaMA), Google Vision API
+- **Language Models**: Support for multiple providers
+- **Image Storage**: Local file system (production: cloud storage)
+
+### Development Tools
+- **Version Control**: Git
+- **Package Manager**: npm
+- **Development**: Hot reload, TypeScript support
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v18 or higher)
+- PostgreSQL database
+- API keys for AI services (Groq, Google Vision)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd SmartWound
+   ```
+
+2. **Backend Setup**
+   ```bash
+   cd backend
+   npm install
+   
+   # Set up environment variables
+   cp .env.example .env
+   # Edit .env with your database and API credentials
+   
+   # Start the backend server
+   npm start
+   ```
+
+3. **Frontend Setup**
+   ```bash
+   cd frontend
+   npm install
+   
+   # Start the development server
+   npm run dev
+   ```
+
+4. **Database Setup**
+   - Create PostgreSQL database
+   - Run migration scripts in `backend/scripts/`
+   - Tables: users, wounds, forum_posts, forum_comments, wound_comments
+
+### Environment Variables
+
+**Backend (.env)**
+```env
+PORT=3001
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=smartwound
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+JWT_SECRET=your_jwt_secret
+GROQ_API_KEY=your_groq_api_key
+GOOGLE_VISION_API_KEY=your_google_api_key
+```
+
+## 📱 Features Overview
+
+### For Users
+1. **Wound Tracking**: Upload photos and track healing progress
+2. **AI Analysis**: Get instant wound type classification and guidance
+3. **Community Support**: Connect with others through the forum
+4. **Medical Guidance**: Receive professional feedback on flagged wounds
+5. **Progress Monitoring**: Visual tracking of wound healing
+
+### For Medical Professionals
+1. **Moderation Dashboard**: Review and flag concerning wounds
+2. **Admin Comments**: Provide professional guidance to users
+3. **Content Moderation**: Manage forum posts and comments
+4. **User Oversight**: Monitor wound healing progress
+
+## 🔐 Authentication & Security
+
+- **JWT Authentication**: Secure token-based authentication
+- **Role-based Access**: User and Admin role separation
+- **Input Validation**: Comprehensive data validation
+- **CORS Protection**: Configured for secure cross-origin requests
+- **Password Security**: Bcrypt hashing for passwords
+
+## 🏥 Medical Safety Features
+
+- **Medical Disclaimers**: Clear warnings about app limitations
+- **Professional Oversight**: Admin flagging and comment system
+- **No Diagnosis Claims**: App explicitly avoids medical diagnosis
+- **Escalation Prompts**: Encourages professional medical consultation
+- **Content Moderation**: Medical professionals review concerning content
+
+## 🎯 Project Goals
+
+**What SmartWound IS:**
+- A wound tracking and monitoring companion
+- An AI-assisted guidance tool
+- A community support platform
+- A bridge to professional medical care
+
+**What SmartWound is NOT:**
+- A diagnostic medical device
+- A replacement for professional healthcare
+- A treatment recommendation system
+- A medical emergency response tool
+
+## 📊 Development Status
+
+### ✅ Completed (Phase 1-2)
+- Core wound tracking functionality
+- AI vision integration
+- User authentication system
+- Admin moderation tools
+- Community forum
+- Basic wound management
+
+### 🚧 In Progress (Phase 3)
+- Advanced analytics and reporting
+- Enhanced AI features
+- Mobile optimization
+- Performance improvements
+
+### 📋 Planned (Phase 4-5)
+- Healthcare provider integration
+- Advanced notification system
+- Mobile applications
+- Monetization features
+- HIPAA compliance
+
+---
+
+**⚠️ Medical Disclaimer**: This application is for informational purposes only and does not constitute medical advice. Always consult qualified healthcare professionals for wound care and medical concerns. In case of emergency, contact emergency services immediately.
+
+**📞 Support**: For technical issues or questions, please contact the development team or create an issue in the repository.
 
 
 
