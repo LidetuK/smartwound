@@ -67,9 +67,10 @@
 - ✅ **Analysis History**: Stored AI analysis results
 
 ### 🔧 Backend Infrastructure
-- ✅ **PostgreSQL Database**: User data, wounds, forum posts, admin comments
+- ✅ **PostgreSQL Database**: User data, wounds, forum posts, admin comments (Neon DB)
 - ✅ **RESTful API**: Complete CRUD operations for all features
-- ✅ **File Upload**: Image handling with proper validation
+- ✅ **File Upload**: Image handling with Cloudinary integration + local backup
+- ✅ **Email System**: SMTP integration for notifications and support
 - ✅ **Error Handling**: Comprehensive error management
 - ✅ **CORS Configuration**: Secure cross-origin requests
 - ✅ **Input Validation**: Data sanitization and validation
@@ -156,9 +157,10 @@
 - **Validation**: Custom validation middleware
 
 ### AI & External APIs
-- **Vision AI**: Groq Vision (Meta LLaMA), Google Vision API
-- **Language Models**: Support for multiple providers
-- **Image Storage**: Local file system (production: cloud storage)
+- **Vision AI**: Groq Vision (Meta LLaMA), Google Vision API, OpenAI GPT-4
+- **Language Models**: Support for multiple providers (Groq, OpenAI)
+- **Image Storage**: Cloudinary cloud storage + local backup
+- **Email Service**: SMTP (Gmail) for notifications and support
 
 ### Development Tools
 - **Version Control**: Git
@@ -169,8 +171,13 @@
 
 ### Prerequisites
 - Node.js (v18 or higher)
-- PostgreSQL database
-- API keys for AI services (Groq, Google Vision)
+- PostgreSQL database (or Neon DB for cloud)
+- API keys for AI services:
+  - Groq API key for vision analysis
+  - OpenAI API key for GPT-4
+  - Google Vision API key (optional)
+- Cloudinary account for image storage
+- Gmail account with app password for email notifications
 
 ### Installation
 
@@ -203,7 +210,8 @@
    ```
 
 4. **Database Setup**
-   - Create PostgreSQL database
+   - Create PostgreSQL database (local) or use Neon DB (cloud)
+   - Update DATABASE_URL in .env with your connection string
    - Run migration scripts in `backend/scripts/`
    - Tables: users, wounds, forum_posts, forum_comments, wound_comments
 
@@ -211,15 +219,32 @@
 
 **Backend (.env)**
 ```env
-PORT=3001
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=smartwound
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-JWT_SECRET=your_jwt_secret
+# Database Configuration
+DATABASE_URL=postgresql://username:password@host:port/database?sslmode=require
+JWT_SECRET=your_jwt_secret_key
+
+# AI Service APIs
 GROQ_API_KEY=your_groq_api_key
-GOOGLE_VISION_API_KEY=your_google_api_key
+OPENAI_API_KEY=your_openai_api_key
+GOOGLE_VISION_API_KEY=your_google_vision_api_key
+
+# Cloudinary Image Storage
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Email Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD="your_app_password"
+MAIL_FROM=your_email@gmail.com
+EMAIL_FROM="App Name <your_email@gmail.com>"
+SUPPORT_EMAIL=support@yourdomain.com
+
+# Frontend URLs
+FRONTEND_URL=http://localhost:3000
+FRONTEND_LAN_URL=http://192.168.x.x:3000
 ```
 
 ## 📱 Features Overview
