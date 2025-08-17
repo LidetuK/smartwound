@@ -58,6 +58,8 @@ export default function WoundDetailPage() {
   const [newLogNotes, setNewLogNotes] = useState("");
   const [newLogImageFile, setNewLogImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -146,6 +148,27 @@ export default function WoundDetailPage() {
       toast.error("Failed to add new log entry. Please try again.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleStatusUpdate = async (newStatus: string) => {
+    setIsUpdatingStatus(true);
+    try {
+      await apiClient.put(`/wounds/${id}`, {
+        status: newStatus
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Update local state
+      setWound(prev => prev ? { ...prev, status: newStatus } : null);
+      setShowStatusModal(false);
+      toast.success(`Status updated to ${newStatus}!`);
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      toast.error("Failed to update status.");
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -278,18 +301,28 @@ export default function WoundDetailPage() {
                   </div>
                   <div className="bg-white/70 rounded-xl p-4 border border-gray-200">
                     <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-1">Status</p>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      wound.status === 'healing' ? 'bg-green-100 text-green-800' :
-                      wound.status === 'infected' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      <div className={`w-2 h-2 rounded-full mr-2 ${
-                        wound.status === 'healing' ? 'bg-green-400' :
-                        wound.status === 'infected' ? 'bg-red-400' :
-                        'bg-yellow-400'
-                      }`}></div>
-                      {wound.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                        wound.status === 'healing' ? 'bg-green-100 text-green-800' :
+                        wound.status === 'infected' ? 'bg-red-100 text-red-800' :
+                        wound.status === 'closed' ? 'bg-gray-100 text-gray-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        <div className={`w-2 h-2 rounded-full mr-2 ${
+                          wound.status === 'healing' ? 'bg-green-400' :
+                          wound.status === 'infected' ? 'bg-red-400' :
+                          wound.status === 'closed' ? 'bg-gray-400' :
+                          'bg-yellow-400'
+                        }`}></div>
+                        {wound.status}
+                      </span>
+                      <button
+                        onClick={() => setShowStatusModal(true)}
+                        className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md hover:bg-indigo-200 transition-colors duration-200"
+                      >
+                        Change
+                      </button>
+                    </div>
                   </div>
                 </div>
                 
@@ -479,6 +512,101 @@ export default function WoundDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Status Update Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Update Wound Status</h3>
+              <button
+                onClick={() => setShowStatusModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <p className="text-gray-600">Select the new status for your wound:</p>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => handleStatusUpdate('open')}
+                  disabled={isUpdatingStatus}
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                    wound.status === 'open' 
+                      ? 'border-yellow-400 bg-yellow-50 text-yellow-800' 
+                      : 'border-gray-200 hover:border-yellow-300 hover:bg-yellow-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                    <span className="font-medium">Open</span>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => handleStatusUpdate('healing')}
+                  disabled={isUpdatingStatus}
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                    wound.status === 'healing' 
+                      ? 'border-green-400 bg-green-50 text-green-800' 
+                      : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                    <span className="font-medium">Healing</span>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => handleStatusUpdate('infected')}
+                  disabled={isUpdatingStatus}
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                    wound.status === 'infected' 
+                      ? 'border-red-400 bg-red-50 text-red-800' 
+                      : 'border-gray-200 hover:border-red-300 hover:bg-red-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                    <span className="font-medium">Infected</span>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => handleStatusUpdate('closed')}
+                  disabled={isUpdatingStatus}
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                    wound.status === 'closed' 
+                      ? 'border-gray-400 bg-gray-50 text-gray-800' 
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                    <span className="font-medium">Closed</span>
+                  </div>
+                </button>
+              </div>
+              
+              {isUpdatingStatus && (
+                <div className="flex items-center justify-center gap-2 text-indigo-600">
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Updating status...
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
