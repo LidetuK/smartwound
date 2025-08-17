@@ -35,7 +35,7 @@ interface ForumComment {
   };
 }
 
-export default function ForumPostPage({ params }: { params: { id: string } }) {
+export default function ForumPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { user, token, isLoading } = useAuth();
   const router = useRouter();
   const [post, setPost] = useState<ForumPost | null>(null);
@@ -43,6 +43,14 @@ export default function ForumPostPage({ params }: { params: { id: string } }) {
   const [newComment, setNewComment] = useState("");
   const [isCommenting, setIsCommenting] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
+  const [postId, setPostId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Await params to get the id
+    params.then(({ id }) => {
+      setPostId(id);
+    });
+  }, [params]);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -50,15 +58,16 @@ export default function ForumPostPage({ params }: { params: { id: string } }) {
       return;
     }
     
-    if (token && params.id) {
+    if (token && postId) {
       fetchPost();
     }
-  }, [user, token, isLoading, router, params.id]);
+  }, [user, token, isLoading, router, postId]);
 
   const fetchPost = async () => {
+    if (!postId) return;
     try {
       setIsPostLoading(true);
-      const response = await apiClient.get(`/forum/posts/${params.id}`, {
+      const response = await apiClient.get(`/forum/posts/${postId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPost(response.data);
@@ -72,11 +81,11 @@ export default function ForumPostPage({ params }: { params: { id: string } }) {
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !postId) return;
 
     try {
       setIsCommenting(true);
-      await apiClient.post(`/forum/posts/${params.id}/comments`, {
+      await apiClient.post(`/forum/posts/${postId}/comments`, {
         content: newComment
       }, {
         headers: { Authorization: `Bearer ${token}` },
@@ -93,10 +102,10 @@ export default function ForumPostPage({ params }: { params: { id: string } }) {
   };
 
   const handleDeletePost = async () => {
-    if (!confirm("Are you sure you want to delete this post?")) return;
+    if (!confirm("Are you sure you want to delete this post?") || !postId) return;
 
     try {
-      await apiClient.delete(`/forum/posts/${params.id}`, {
+      await apiClient.delete(`/forum/posts/${postId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       router.push("/dashboard/forum");

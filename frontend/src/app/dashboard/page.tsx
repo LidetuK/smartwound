@@ -104,7 +104,13 @@ export default function DashboardPage() {
           }
         } catch (error: unknown) {
           console.error("Failed to fetch wounds:", error);
-          console.error("Error details:", error.response?.data || error.message);
+          if (error && typeof error === 'object' && 'response' in error) {
+            const apiError = error as { response?: { data?: unknown } };
+            console.error("Error details:", apiError.response?.data);
+          } else if (error && typeof error === 'object' && 'message' in error) {
+            const messageError = error as { message?: string };
+            console.error("Error details:", messageError.message);
+          }
         } finally {
           setIsWoundsLoading(false);
         }

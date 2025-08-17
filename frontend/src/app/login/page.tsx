@@ -28,8 +28,16 @@ export default function LoginPage() {
       toast.success("Login successful!");
       router.push("/dashboard"); // Redirect to a protected dashboard page
     } catch (error: unknown) {
-      const errorMessage =
-        error.response?.data?.message || "An unexpected error occurred.";
+      let errorMessage = "An unexpected error occurred.";
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as { response?: { data?: { message?: string } } };
+        errorMessage = apiError.response?.data?.message || errorMessage;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        const messageError = error as { message?: string };
+        errorMessage = messageError.message || errorMessage;
+      }
+      
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);

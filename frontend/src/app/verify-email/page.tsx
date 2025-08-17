@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import apiClient from "@/services/api";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -30,9 +30,17 @@ export default function VerifyEmailPage() {
         }, 3000);
       } catch (error: unknown) {
         setStatus("error");
-        setMessage(
-          error.response?.data?.message || "Verification failed. Please try again."
-        );
+        let errorMessage = "Verification failed. Please try again.";
+        
+        if (error && typeof error === 'object' && 'response' in error) {
+          const apiError = error as { response?: { data?: { message?: string } } };
+          errorMessage = apiError.response?.data?.message || errorMessage;
+        } else if (error && typeof error === 'object' && 'message' in error) {
+          const messageError = error as { message?: string };
+          errorMessage = messageError.message || errorMessage;
+        }
+        
+        setMessage(errorMessage);
       }
     };
 
@@ -72,5 +80,19 @@ export default function VerifyEmailPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 text-center">
+        <div className="max-w-md rounded-lg bg-white p-8 shadow-lg">
+          <p className="text-lg text-gray-600">Loading verification...</p>
+        </div>
+      </div>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
   );
 } 

@@ -34,10 +34,25 @@ export default function RegisterPage() {
       // router.push("/login");
     } catch (error: unknown) {
       toast.dismiss();
-      const errorMessage =
-        error.response?.data?.errors?.[0]?.msg ||
-        error.response?.data?.message ||
-        "An unexpected error occurred.";
+      let errorMessage = "An unexpected error occurred.";
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as { 
+          response?: { 
+            data?: { 
+              errors?: Array<{ msg?: string }>;
+              message?: string;
+            } 
+          } 
+        };
+        errorMessage = apiError.response?.data?.errors?.[0]?.msg ||
+                      apiError.response?.data?.message ||
+                      errorMessage;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        const messageError = error as { message?: string };
+        errorMessage = messageError.message || errorMessage;
+      }
+      
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
