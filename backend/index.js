@@ -23,7 +23,7 @@ import cookieParser from 'cookie-parser';
 const app = express();
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-frontend-domain.vercel.app', 'https://your-frontend-domain.netlify.app']
+    ? ['https://gentle-eagerness-production-c7b5.up.railway.app', 'http://localhost:3000']
     : 'http://localhost:3000',
   credentials: true
 }));
@@ -48,7 +48,8 @@ app.get('/', (req, res) => {
   res.status(200).json({ 
     message: 'Smart Wound Backend API',
     status: 'healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
@@ -56,8 +57,14 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
+});
+
+// Simple ping endpoint for basic connectivity
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong');
 });
 
 // For Vercel serverless
@@ -68,6 +75,8 @@ const port = process.env.PORT || 3001;
 console.log('Starting server...');
 console.log('Environment:', process.env.NODE_ENV || 'development');
 console.log('Port:', port);
+console.log('Database URL exists:', !!process.env.DATABASE_URL);
+console.log('JWT Secret exists:', !!process.env.JWT_SECRET);
 
 const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
