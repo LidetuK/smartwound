@@ -64,7 +64,12 @@ app.get('/health', (req, res) => {
 
 // Simple ping endpoint for basic connectivity
 app.get('/ping', (req, res) => {
-  res.status(200).send('pong');
+  res.status(200).json({
+    status: 'ok',
+    message: 'pong',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
 // For Vercel serverless
@@ -98,18 +103,36 @@ process.on('SIGTERM', () => {
   });
 });
 
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  console.log('Application will continue running');
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  console.log('Application will continue running');
+});
+
 // Database sync in background
 setTimeout(() => {
   console.log('Attempting database sync...');
   console.log('Database URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
   
-  sequelize.sync({ alter: true })
+  // Test database connection first
+  sequelize.authenticate()
+    .then(() => {
+      console.log('Database connection successful');
+      return sequelize.sync({ alter: true });
+    })
     .then(() => {
       console.log('Database synced successfully');
     })
     .catch((error) => {
-      console.error('Database sync failed:', error);
+      console.error('Database connection/sync failed:', error.message);
+      console.log('Application will continue without database sync');
       // Don't exit the process, just log the error
       // The app can still run without database sync
     });
-}, 2000); 
+}, 3000); 

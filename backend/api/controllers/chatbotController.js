@@ -5,9 +5,13 @@ import WoundLog from '../models/woundlog.model.js';
 import { Op } from 'sequelize';
 dotenv.config();
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+// Initialize Groq client only if API key is available
+let groq = null;
+if (process.env.GROQ_API_KEY) {
+  groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY,
+  });
+}
 
 const systemPrompt = `
 You are a helpful AI assistant for Smart Wound, a wound care companion app.
@@ -29,6 +33,13 @@ Use this context to provide more relevant and personalized advice, but still mai
 
 export const handleChat = async (req, res) => {
   try {
+    // Check if Groq client is available
+    if (!groq) {
+      return res.status(503).json({ 
+        error: 'Chatbot service is not available. GROQ_API_KEY is not configured.' 
+      });
+    }
+
     const { message, context = {}, history = [] } = req.body;
     const userId = req.user?.id; // Assuming user ID is available from auth middleware
 
