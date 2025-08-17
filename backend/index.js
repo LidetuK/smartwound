@@ -43,8 +43,21 @@ app.use('/api/smart', smartRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/support', supportRoutes);
 
+// Health check endpoint
 app.get('/', (req, res) => {
-  res.json({ message: 'Smart Wound Backend API' });
+  res.status(200).json({ 
+    message: 'Smart Wound Backend API',
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Additional health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // For Vercel serverless
@@ -54,20 +67,40 @@ export default app;
 const port = process.env.PORT || 3001;
 console.log('Starting server...');
 console.log('Environment:', process.env.NODE_ENV || 'development');
+console.log('Port:', port);
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
   console.log('Server started successfully!');
+  console.log('Health check available at: http://localhost:' + port + '/');
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('Server error:', error);
+  process.exit(1);
+});
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
 
 // Database sync in background
 setTimeout(() => {
   console.log('Attempting database sync...');
+  console.log('Database URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
+  
   sequelize.sync({ alter: true })
     .then(() => {
       console.log('Database synced successfully');
     })
     .catch((error) => {
       console.error('Database sync failed:', error);
+      // Don't exit the process, just log the error
+      // The app can still run without database sync
     });
-}, 1000); 
+}, 2000); 
