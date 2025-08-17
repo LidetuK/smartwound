@@ -22,23 +22,11 @@ export const register = async (req, res) => {
       password_hash,
       full_name,
       privacy_consent,
+      is_verified: true, // Auto-verify the user
     });
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-    user.verification_token = verificationToken;
-    user.verification_token_expires_at = new Date(Date.now() + 3600000); // 1 hour from now
-    await user.save();
-
-    // Send verification email
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-    const emailHtml = `<p>Please verify your email by clicking on the link below:</p><a href="${verificationUrl}">${verificationUrl}</a>`;
-
-    await sendEmail(user.email, "Verify Your Email", emailHtml);
-
     res.status(201).json({
-      message:
-        "Registration successful. Please check your email to verify your account.",
+      message: "Registration successful. You can now log in.",
     });
   } catch (error) {
     console.error(error);
@@ -58,13 +46,6 @@ export const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    if (!user.is_verified) {
-      return res.status(401).json({
-        message:
-          "Account not verified. Please check your email for a verification link.",
-      });
     }
 
     const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
