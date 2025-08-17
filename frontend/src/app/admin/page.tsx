@@ -9,7 +9,12 @@ import Link from "next/link";
 export default function AdminDashboardPage() {
   const { user, token, isLoading, logout } = useAuth();
   const router = useRouter();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<{
+    users?: number;
+    wounds?: number;
+    flaggedContent?: { posts?: number };
+    clinics?: number;
+  } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
 
@@ -35,8 +40,9 @@ export default function AdminDashboardPage() {
         if (!res.ok) throw new Error('Failed to fetch stats');
         const data = await res.json();
         setStats(data);
-      } catch (err: any) {
-        setStatsError(err.message || 'Unknown error');
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        setStatsError(errorMessage);
       } finally {
         setStatsLoading(false);
       }

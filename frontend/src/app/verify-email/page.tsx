@@ -28,7 +28,7 @@ export default function VerifyEmailPage() {
         setTimeout(() => {
           router.push("/login");
         }, 3000);
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus("error");
         setMessage(
           error.response?.data?.message || "Verification failed. Please try again."

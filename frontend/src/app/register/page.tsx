@@ -32,7 +32,7 @@ export default function RegisterPage() {
       );
       // We no longer redirect automatically. The user must verify first.
       // router.push("/login");
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.dismiss();
       const errorMessage =
         error.response?.data?.errors?.[0]?.msg ||

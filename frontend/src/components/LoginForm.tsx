@@ -24,7 +24,7 @@ export default function LoginForm({ onSuccess, onSwitchToSignup }: { onSuccess?:
       toast.success("Login successful!");
       if (onSuccess) onSuccess();
       router.push("/dashboard");
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = error.response?.data?.message || "An unexpected error occurred.";
       toast.error(errorMessage);
     } finally {

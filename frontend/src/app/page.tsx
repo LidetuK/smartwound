@@ -516,7 +516,7 @@ export default function LandingPage() {
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">Contact Us</h2>
             <div className="w-24 h-1 bg-indigo-600 mx-auto rounded-full mb-8"></div>
             <p className="text-xl text-gray-600 mb-10 leading-relaxed">
-              Have questions, feedback, or want to partner with us? We'd love to hear from you!
+              Have questions, feedback, or want to partner with us? We&apos;d love to hear from you!
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <a 

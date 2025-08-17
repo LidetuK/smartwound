@@ -22,7 +22,9 @@ import cookieParser from 'cookie-parser';
 
 const app = express();
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://your-frontend-domain.vercel.app', 'https://your-frontend-domain.netlify.app']
+    : 'http://localhost:3000',
   credentials: true
 }));
 app.use(cookieParser());

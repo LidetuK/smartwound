@@ -27,7 +27,7 @@ export default function LoginPage() {
 
       toast.success("Login successful!");
       router.push("/dashboard"); // Redirect to a protected dashboard page
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
         error.response?.data?.message || "An unexpected error occurred.";
       toast.error(errorMessage);

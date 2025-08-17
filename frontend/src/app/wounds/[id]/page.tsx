@@ -42,10 +42,7 @@ interface WoundLog {
   created_at: string;
 }
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
+
 
 export default function WoundDetailPage() {
   const { token, isLoading: isAuthLoading } = useAuth();
@@ -425,7 +422,7 @@ export default function WoundDetailPage() {
                             onChange={(e) => setNewLogNotes(e.target.value)}
                             rows={4}
                             className="block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-white/70 backdrop-blur-sm transition-all duration-200"
-                            placeholder="Describe any changes you've noticed: pain level, swelling, color, healing progress..."
+                            placeholder="Describe any changes you&apos;ve noticed: pain level, swelling, color, healing progress..."
                         />
                     </div>
                     <div>

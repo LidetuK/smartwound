@@ -26,7 +26,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: { onSuccess?:
       toast.dismiss();
       toast.success("Account created successfully! Please check your email to verify your account.");
       if (onSuccess) onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.dismiss();
       const errorMessage = error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || "An unexpected error occurred.";
       toast.error(errorMessage);

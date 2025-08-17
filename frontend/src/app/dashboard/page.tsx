@@ -8,7 +8,7 @@ import Button from "@/components/Button";
 import Link from "next/link";
 import apiClient from "@/services/api";
 import WoundCard from "@/components/WoundCard";
-import { FaUserEdit, FaKey, FaUserCircle, FaFlag } from "react-icons/fa";
+import { FaUserCircle, FaFlag } from "react-icons/fa";
 import { MdSupportAgent } from "react-icons/md";
 
 // Define the Wound type based on your API response
@@ -70,7 +70,7 @@ export default function DashboardPage() {
           console.log('Wounds response:', response.data);
           
           // Ensure wounds have required fields with defaults
-          const woundsWithDefaults = response.data.map((wound: any) => ({
+          const woundsWithDefaults = response.data.map((wound: Wound) => ({
             ...wound,
             flagged: wound.flagged || false,
             status: wound.status || 'open'
@@ -102,7 +102,7 @@ export default function DashboardPage() {
             });
             setAdminComments(commentsMap);
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error("Failed to fetch wounds:", error);
           console.error("Error details:", error.response?.data || error.message);
         } finally {
